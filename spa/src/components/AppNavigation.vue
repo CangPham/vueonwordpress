@@ -112,7 +112,9 @@ export default {
 			y_height: "",
 			bmi: "",
 			y_bmi: "",
-      bmiResult: ""
+      bmiResult: "",
+      phone: "",
+      email: ""
 		};
 	},
 	mounted() {
@@ -131,7 +133,7 @@ export default {
 
 		async fetchData() {
 			const restURL = wpData.rest_url;
-			const response = await axios(`${restURL}/wp/v2/persondata/all`);
+			const response = await axios.get(`${restURL}/bmi/v1/all`);
 			this.personsData = response.data;
 		},
 
@@ -194,9 +196,30 @@ export default {
         this.bmiResult = `Bình thường`;
 			else this.bmiResult = `Dư cân`;
 
-			this.name = " ";
-			this.age = " ";
+			
       this.showResult = true;
+
+      const form = {
+                name: this.name,
+                email: this.email,
+                phone: this.phone,
+                gender: this.selected,
+                age: this.age,
+                height: this.height,
+                weight: this.weight,
+                y_height: this.y_height,
+                y_weight: this.y_weight,
+                bmi: this.bmi
+            }
+      axios.post(`${wpData.rest_url}/bmi/v1/add`, form)
+            .then((res) => {
+                //Perform Success Action
+            })
+            .catch((error) => {
+                // error.response.status Check status code
+            }).finally(() => {
+                //Perform action in always
+            });
 		}
 	}
 };

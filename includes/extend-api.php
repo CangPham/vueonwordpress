@@ -80,12 +80,17 @@ function vue_get_post_meta_fields( $post_object, $field_name, $request ) {
 add_action( 'rest_api_init', 'register_api_route' );
 function register_api_route() {
   
-      register_rest_route( 'wp/v2', 'persondata/all', array(
+      register_rest_route( 'bmi/v1', 'all', array(
         'methods' => 'GET',
         'callback' => 'handle_get_all',
         )
       );
-           
+	  
+      register_rest_route( 'bmi/v1', 'add', array(
+        'methods' => 'POST',
+        'callback' => 'handle_post',
+        )
+      );     
 }
   
   function handle_get_all( $data ) {
@@ -94,3 +99,56 @@ function register_api_route() {
 	  $list = $wpdb->get_results($query);
 	  return $list;
   }
+
+  
+function handle_post1( WP_REST_Request $request ) {
+    global $wpdb;
+    $item = $request->get_json_params();
+
+    $fields = array();
+    $values = array();
+    foreach($item as $key => $val) {
+        array_push($fields, preg_replace("/[^A-Za-z0-9]/", '', $key));
+        array_push($values, $wpdb->prepare('%s', $val));
+    }
+    $fields = implode(", ", $fields);
+    $values = implode(", ", $values);
+    $query = "INSERT INTO `userdata` ($fields) VALUES ($values)";
+    $list = $wpdb->get_results($query);
+
+    return $list;
+}
+
+function handle_post( $request_data ) {
+  global $wpdb;
+  $data = array();
+  $table        = 'userdata';
+
+  // Fetching values from API
+  $parameters = $request_data->get_params();
+  $name = $parameters['name'];
+  $email = $parameters['email'];
+  $phone = $parameters['phone'];
+  $age = $parameters['age'];
+  $gender = $parameters['gender'];
+  $height = $parameters['height'];
+  $weight = $parameters['weight'];
+  $y_weight = $parameters['y_weight'];
+  $y_height = $parameters['y_height'];
+  $bmi = $parameters['bmi'];
+  $datecreated = date("Y/m/d");
+	
+  $insert = $wpdb->insert($table, array(
+		"gender" => $gender,
+		"age" => $age,
+		"weight" => $weight,
+		"height" => $height,
+		"y_weight" => $y_weight,
+		"y_height" => $y_height,
+		"phone" => $phone,
+        "email" => $email ,
+		"datecreated" => $datecreated ,
+		"bmi" => $bmi ,
+        ));
+  return ($insert);
+}
