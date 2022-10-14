@@ -29,7 +29,9 @@
 						</div>
 
 						<div class="input-group">
-							<input
+              <!-- <month-picker @change="showDate"></month-picker> -->
+              <month-picker-input :no-default="true" @change="showDate"></month-picker-input>
+							<!-- <input
 								class="input--style-2"
 								type="number"
 								v-model="age"
@@ -38,7 +40,7 @@
 								name="age"
 								min="24"
 								max="240"
-							/>
+							/> -->
 						</div>
 
 						<div class="input-group">
@@ -90,10 +92,23 @@
 
 <script>
 import axios from "axios";
+import { MonthPickerInput, MonthPicker } from 'vue-month-picker'
+
+function monthDiff(d1, d2) {
+    var months;
+    months = (d2.getFullYear() - d1.getFullYear()) * 12;
+    months -= d1.getMonth();
+    months += d2.getMonth();
+    return months <= 0 ? 0 : months;
+}
 
 export default {
 	/*global wpData:true*/
 	/*eslint no-undef: "error"*/
+  components: {
+		MonthPickerInput,
+    MonthPicker
+	},
 	data() {
 		return {
 		  //bgCard: `url("${wpData.template_directory_uri}/assets/images/bg-heading-02.jpg") top left/cover no-repeat`,
@@ -104,6 +119,12 @@ export default {
 				{ value: 0, text: " Nữ" },
 				{ value: 1, text: " Nam" }
 			],
+      date: {
+				from: null,
+				to: null,
+				month: null,
+				year: null
+			},
 			name: "",
 			age: "",
 			height: "",
@@ -137,20 +158,33 @@ export default {
 			this.personsData = response.data;
 		},
 
+    showDate (date) {
+			this.date = date
+      console.log(this.date.from)
+		},
+
 		onSubmit(e) {
 			e.preventDefault();
 			// if(!this.name){
 			//     alert('Please Add a Name')
 			//     return
 			// }
+      var d = new Date(this.date.year, this.date.month, 1);
+      new Date(2008, 10, 4)
+      console.log(new Date(2008, 10, 4))
+      const months = monthDiff(new Date(this.date.year,  this.date.month, 4), Date.now());
+      
+      this.age = months;
+      console.log(months)
 			const data = this.personsData;
 			const dataByGender = data.filter(o => o.gender == this.selected);
 			const dataByAge = dataByGender.filter(
-				o => o.age >= this.age && o.age < parseFloat(this.age) + 5
+				o => o.age >= (parseFloat(this.age) - 1) && o.age < parseFloat(this.age) + 1
 			);
 			dataByAge.sort(function(a, b) {
 				return parseFloat(a.age) - parseFloat(b.age);
 			});
+      console.log(dataByAge)
 			const dataSearch = [...dataByAge];
 			const weightInRange = dataSearch.map(o => o.weight);
 			const heightInRange = dataSearch.map(o => o.height);
@@ -163,11 +197,13 @@ export default {
 					return parseFloat(a.weight) - parseFloat(b.weight);
 				});
 				const searchObject = dataByWeight.find(o => o.weight >= this.weight);
+        console.log(searchObject)
 				if (searchObject) {
 					this.y_weight = searchObject.y_weight;
 				}
 			} else {
 				alert("Cân nặng nằm ngoài khả năng dự doán");
+        return;
 			}
 			if (
 				this.height > Math.min(...heightInRange) &&
@@ -178,11 +214,13 @@ export default {
 					return parseFloat(a.height) - parseFloat(b.height);
 				});
 				const searchObject = dataByHeight.find(o => o.height >= this.height);
+        console.log(searchObject)
 				if (searchObject) {
 					this.y_height = searchObject.y_height;
 				}
 			} else {
 				alert("Chiều cao nằm ngoài khả năng dự doán");
+        return;
 			}
 
 			//this.bmi = this.weight/(this.height**2);
